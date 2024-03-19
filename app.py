@@ -16,7 +16,6 @@ api = Api(app)
 db = MongoEngine(app)
 
 
-
 class UserModel(db.Document):
     cpf = db.StringField(required=True, unique=True)
     first_name = db.StringField(required=True)
