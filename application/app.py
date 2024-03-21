@@ -76,8 +76,9 @@ class User(Resource):
 
 class UserDetail(Resource):
     def get(self, cpf):
-        response = jsonify(UserModel.objects(cpf=cpf))
+        user = UserModel.objects(cpf=cpf).first()
 
-        if response:
-            return jsonify(response)
-        return {"message": "User does not exist in data"}
+        if user:
+            return jsonify(user)
+        else:
+            return {"message": "User does not exist in data"}, 404
