@@ -1,9 +1,19 @@
 import os
+import mongomock
+
 
 class DevConfig():
     MONGODB_SETTINGS = {
-        "db": os.gentenv('MONGODB_DB'),
-        "host": os.gentenv('MONGODB_HOST'),
-        "username": os.gentenv('MONGODB_USER'),
-        "password": os.gentenv('MONGODB_PASSWORD'),
-      }
+        "db": os.getenv('MONGODB_DB'),
+        "host": os.getenv('MONGODB_HOST'),
+        "username": os.getenv('MONGODB_USER'),
+        "password": os.getenv('MONGODB_PASSWORD'),
+    }
+
+
+class MockConfig:
+    MONGODB_SETTINGS = {
+        "db": "mongoenginetest",
+        "host": "mongodb://localhost",
+        "mongo_client_class": mongomock.MongoClient
+    }

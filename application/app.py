@@ -69,7 +69,7 @@ class User(Resource):
             return {"message": "CPF is invalid."}, 400
         try:
             response = UserModel(**data).save()
-            return {"message": "User %s successfully created!" % response}
+            return {"message": f"User {response.id} successfully created!"}
         except NotUniqueError:
             return {"message": "CPF already exists in database!"}, 400
 
