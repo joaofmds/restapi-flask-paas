@@ -1,4 +1,4 @@
-APP = restapi
+APP = restapi-flask-paas
 
 test: 
 	@flake8 . --exclude .venv
@@ -10,5 +10,5 @@ compose:
 
 heroku:
 	@heroku container:login
-	@heroku container:push -a restapi-flask-paas web
-	@heroku container:release -a restapi-flask-paas web
+	@heroku container:push -a $(APP) web
+	@heroku container:release -a $(APP) web
