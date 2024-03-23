@@ -66,3 +66,12 @@ class TestApplication:
         response = client.patch('/user', json=valid_user)
         assert response.status_code == 400
         assert b"does not exist in database" in response.data
+
+    def test_delete_user(self, client, valid_user):
+        response = client.delete(f'/user/{valid_user["cpf"]}')
+        assert response.status_code == 200
+        assert b"deleted" in response.data
+
+        response = client.delete(f'/user/{valid_user["cpf"]}')
+        assert response.status_code == 404
+        assert b"does not exist" in response.data
