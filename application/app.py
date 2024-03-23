@@ -95,3 +95,15 @@ class UserDetail(Resource):
             return jsonify(user)
         else:
             return {"message": "User does not exist in data"}, 404
+
+    def delete(self, cpf):
+        try:
+            response = UserModel.objects(cpf=cpf).first()
+
+            if response:
+                response.delete()
+                return {"message": "User deleted!"}, 200
+            else:
+                return {"message": "User does not exist in database!"}, 404
+        except Exception as e:
+            return {"message": f"An error occurred: {str(e)}"}, 500
