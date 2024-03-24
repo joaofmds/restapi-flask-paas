@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
-from .model import UserModel
+from .model import UserModel, HealthCheckModel
 import re
 
 
@@ -107,3 +107,13 @@ class UserDetail(Resource):
                 return {"message": "User does not exist in database!"}, 404
         except Exception as e:
             return {"message": f"An error occurred: {str(e)}"}, 500
+
+
+class HealthCheck(Resource):
+    def get(self):
+        response = HealthCheckModel.objects(status="healthcheck")
+        if response:
+            return 'Healthy', 200
+        else:
+            HealthCheckModel(status="healthcheck").save()
+            return 'Healthy', 200
