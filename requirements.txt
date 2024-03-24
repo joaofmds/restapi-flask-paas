@@ -1,11 +1,12 @@
 aniso8601==9.0.1
+black==24.3.0
 blinker==1.7.0
 click==8.1.7
 dnspython==2.6.1
 email_validator==2.1.1
 flake8==7.0.0
 Flask==3.0.2
-git+https://github.com/idoshr/flask-mongoengine.git@e244408acf440c4208f7ddcd6e5d819cb472e4da
+flask-mongoengine @ git+https://github.com/idoshr/flask-mongoengine.git@e244408acf440c4208f7ddcd6e5d819cb472e4da
 Flask-RESTful==0.3.10
 Flask-WTF==1.2.1
 idna==3.6
@@ -16,7 +17,10 @@ MarkupSafe==2.1.5
 mccabe==0.7.0
 mongoengine==0.28.2
 mongomock==4.1.2
+mypy-extensions==1.0.0
 packaging==24.0
+pathspec==0.12.1
+platformdirs==4.2.0
 pluggy==1.4.0
 pycodestyle==2.11.1
 pyflakes==3.2.0
