@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask_restful import Resource, reqparse
 from mongoengine import NotUniqueError
-from .model import UserModel
+from .model import UserModel, HealthCheckModel
 import re
 
 
@@ -73,6 +73,19 @@ class User(Resource):
         except NotUniqueError:
             return {"message": "CPF already exists in database!"}, 400
 
+    def patch(self):
+        data = _user_parser.parse_args()
+
+        if not self.validateCpf(data.cpf):
+            return {"message": "CPF is invalid."}, 400
+
+        response = UserModel.objects(cpf=data.cpf).first()
+        if response:
+            response.update(**data)
+            return {"message": "User updated!"}, 200
+        else:
+            return {"message": "User does not exist in database!"}, 400
+
 
 class UserDetail(Resource):
     def get(self, cpf):
@@ -82,3 +95,25 @@ class UserDetail(Resource):
             return jsonify(user)
         else:
             return {"message": "User does not exist in data"}, 404
+
+    def delete(self, cpf):
+        try:
+            response = UserModel.objects(cpf=cpf).first()
+
+            if response:
+                response.delete()
+                return {"message": "User deleted!"}, 200
+            else:
+                return {"message": "User does not exist in database!"}, 404
+        except Exception as e:
+            return {"message": f"An error occurred: {str(e)}"}, 500
+
+
+class HealthCheck(Resource):
+    def get(self):
+        response = HealthCheckModel.objects(status="healthcheck")
+        if response:
+            return 'Healthy', 200
+        else:
+            HealthCheckModel(status="healthcheck").save()
+            return 'Healthy', 200
