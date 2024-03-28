@@ -1,4 +1,5 @@
-name: Deploy Heroku
+---
+name: Deploy AWS
 
 on:
   push:
@@ -11,28 +12,79 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11' 
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install mongomock flask-mongoengine
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
-      - name: Run tests
-        run: |
-          pip install git+https://github.com/idoshr/flask-mongoengine.git@e244408acf440c4208f7ddcd6e5d819cb472e4da
-          make test
+    - name: Run tests
+      run: |
+        make test
 
-  deploy:
+  build:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      ecr_registry: <ECR_REGISTRY>
+      ecr_repository: restapi-ecr
+
+    outputs:
+      image_tag: ${{ steps.build.outputs.image_tag }}
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Heroku
-        run: make heroku
-        env: 
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: us-east-2
+        role-to-assume: arn:aws:iam::123456789100:role/my-github-actions-role
+        role-session-name: MySessionName
+    - id: build
+      name: Build Docker image
+      run: |
+        aws sts get-caller-identity
+
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ecr_registry}
+
+        sha=${{ github.sha }}
+        short-sha=${sha:0:7}
+
+        docker build -t ${ecr_registry}/${ecr_repository}:dev-${short-sha} .
+        docker push ${ecr_registry}/${ecr_repository}:dev-${short-sha}
+
+        echo "image_tag=dev-${short-sha}" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: us-east-2
+        role-to-assume: arn:aws:iam::123456789100:role/my-github-actions-role
+        role-session-name: MySessionName
+    - env:
+        TAG: ${{ needs.build.outputs.image_tag }}
+      name: Deploy to Kubernetes
+      run: |-
+        aws eks update-kubeconfig --name restapi-cluster --region us-east-1
+
+        kubectl get node
+
+        helm upgrade --install \
+          -- set image.tag=${TAG} \
+          restapi kubernetes/charts/restapi-flask
